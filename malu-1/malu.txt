@@ -1,0 +1,693 @@
+O1 +--------------------------------------------------------+
+---| 4 to 16 converter                                      |
+O2 |                                                        |
+---|                                                        |
+O3 |                                                        |
+---|                                                        |
+O3 |                                                        |
+---|                                                        |
+   +--------------------------------------------------------+
+       |  |  |  |    |  |  |  |    |  |  |  |    |  |  |  |
+       |  |  |  |    |  |  |  |    |  |  |  |    |  |  |  |
+       |  |  |  |    |  |  |  |    |  |  |  |    |  |  |  |
+    +--------------------------+  +----------+  +-----------+
+    | Logic                    |  | Adder    |  | Shifter   |
+A --|                          |--|          |--|           |
+    |                          |  |          |  |           |
+B --|                          |--|          |--|           |
+    |                          |  |          |  |           |
+    +--------------------------+  |          |  +-----------+
+                          |       |          |      |
+Cin ----------------------+-------|          |      |
+                          |       +----------+      |
+                          |          |    |         |
+                          |          |    |         |
+                          |          |    |         |
+                        +-----------------|-----------+
+                        | OR              |           |
+                        |                 |           |
+                        |                 |           |
+                        +-----------------|-----------+
+                                |         |
+                                |         |
+                                |         |
+                                Out       COut
+
+
+Rod Symbol Identification
+
+     |          |          |          |
+     |          |          |          |
+-----|----------O----------X----------Z-----
+     |          |          |          |
+     |          |          |          |
+     NOP        Identity   Invert     Zero
+
+     NOP        Indicates that the rods do not interact with each other
+     Identity   Indicates that the output rod (vertical) will be set to 1 (moved downward) when the input rod
+                (horizontal) is set to 1 (moved to the right)
+     Invert     (NOT) Indicates that the output rod (vertical) will be set to 1 (moved downward) when the input rod
+                (horizontal) is set to 0 (Sitting in leftmost position)
+     Zero       Indicates that the output rod (vertical) will always be set to 0 (in the topmost position) regardless
+                of the position of the input rod (horizontal).
+
+     Input rods have "knobs",
+     Output rods have "probes",
+
+     In an Identity gate, the knob is position at the intersection of the input and output rod.  The probe is
+     positioned directly above the intersection.  When the input rod is at zero, the probe will hit the knob
+     preventing the rod from moving, thus creating an output of zero.  When teh input rod is at one, the knob will
+     move to the right of the intersection of the rods, thus allowing the probe to move freely, setting the output
+     to one.
+
+     In an inversion gate, the knob is positioned immediately to the left of the intersection of the input and output
+     rods.  The probe is placed immediately above the intersection.  When the input rod is zero, the probe will
+     pass to the right of the knob allowing the output rod to read one.  When the input rod is zero, the knob
+     will be moved into the intersection, thus preventing the probe from moving.  This will give an output of
+     zero.
+
+     In the NOP state, there is either no probes or knobs.  The rods can move freely.  The output rod is
+     unaffected by the input rod.  If there are no other gates on the output rod, this leads to an output
+     of 1.  If there are other gates on the output rod, the output will be the value of those other gates.
+
+     In the Zero state, the input rod has a long knob that starts to the left of the intersection of the input
+     and output rods and continues over the intersection.  In this scenerio, the position of the input rod
+     will always lead to the output rod's probe being blocked by the knob.  This results in the output always
+     being zero.
+
+
+Rod Diagram of 4 to 16 selector
+
+             1   0   1   0   1   0   1   0   1   0   1   0   1   0   1   0
+             1   1   0   0   1   1   0   0   1   1   0   0   1   1   0   0
+             1   1   1   1   0   0   0   0   1   1   1   1   0   0   0   0
+             1   1   1   1   1   1   1   1   0   0   0   0   0   0   0   0
+             |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+             |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+             |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+Op1 ---------O---X---O---X---O---X---O---X---O---X---O---X---O---X---O---X----
+             |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+Op2 ---------O---O---X---X---O---O---X---X---O---O---X---X---O---O---X---X----
+             |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+Op3 ---------O---O---O---O---X---X---X---X---O---O---O---O---X---X---X---X----
+             |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+Op4 ---------O---O---O---O---O---O---O---O---X---X---X---X---X---X---X---X----
+             |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+             |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+             |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+
+
+Op      Operation                Category
+----    ---------------------    --------
+0000    NOP (ZERO)               Logic
+0001    NOT A                    Logic
+0010    A AND B                  Logic
+0011    A OR B                   Logic
+0100    A XOR B                  Logic
+0101    A NAND B                 Logic
+0110    A NOR B                  Logic
+0111    -A (2's Complement)                  (possibly XNOR?)
+1000    ROTR A                   Shifter
+1001    ROTL A                   Shifter
+1010    SHR A                    Shifter
+1011    SHL A                    Shifter
+1100    A + B                    Adder
+1101    A - B                    Adder
+1110    A++                      Adder
+1111    A--                      Adder
+
+
+Logic
+
+    NOP (ZERO)   NOT A      General Logic Gates
+    A B | Out    A | Out    A B | AND NAND OR NOR XOR XNOR
+    ----+----    --+----    ----+-------------------------
+    * * | 0      0 | 1      0 0 | 0   1    0  1   0   1
+                 1 | 0      0 1 | 0   1    1  0   1   0
+                            1 0 | 0   1    1  0   1   0
+                            1 1 | 1   0    1  0   0   1
+
+
+Logic Unit
+
+            0    1    0    1    1    0    0    1    0    0    1
+            0    0    1    1    1    0    0    0    1    1    1
+            0    0    0    0    0    1    1    1    1    1    1
+            0    0    0    0    0    0    0    0    0    0    0
+            |    |    |    |    |    |    |    |    |    |    |                  |    |
+            |    |    |    |    |    |    |    |    |    |    |                  |    |
+            |    |    |    |    |    |    |    |    |    |    |                  |    |
+            |    |    |    |    |    |    |    |    |    |    |                  |    |
+A ----------Z----X----O----O----|----O----X----X----X----|----|----        A ----X----O----
+            |    |    |    |    |    |    |    |    |    |    |                  |    |
+            |    |    |    |    |    |    |    |    |    |    |                  |    |
+B ----------|----|----O----|----O----X----O----X----|----X----|----        B ----X----O----
+            |    |    |    |    |    |    |    |    |    |    |                  |    |
+            |    |    |    |    |    |    |    |    |    |    |                  |    |
+            |    |    |    ======    ======    |    ======    |                  ======
+            |    |    |      |         |       |      |       |                    |
+            |    |    |      |         |       |      |       |                    |
+            N    N    A      A         A       A      A       U                    X
+            O    O                                            N                    N
+            P    T    A      O         X       N      N       D                    O
+                      N      R         O       A      O       E                    R
+                 A    D                R       N      R       F
+                             B                 D              I
+                      B                B              B       N
+                                               B              E
+                                                              D
+
+
+Connection of 4 to 16 decoder/demultiplexer to logic/shift/adder units
+
+    The 4 to 16 decoder should
+
+
+Adder
+
+          CIn | A + B  | A - B  | A++    | A--
+      A B BIn | S COut | D BOut | S COut | D Cout
+      --------+--------+--------+--------+-------
+      0 0 0   | 0 0    | 0 0    |        |
+      0 1 0   | 1 0    | 1 1    |        |
+      1 0 0   | 1 0    | 1 0    |        |
+      1 1 0   | 0 1    | 0 0    |        |
+      0 0 1   | 1 0    | 1 1    |        |
+      0 1 1   | 0 1    | 0 1    |        |
+      1 0 1   | 0 1    | 0 0    |        |
+      1 1 1   | 1 1    | 1 1    |        |
+
+
+
+        |    |    |    |    |    |    |                  |    |    |    |    |    |    |
+        |    |    |    |    |    |    |                  |    |    |    |    |    |    |
+        |    |    |    |    |    |    |                  |    |    |    |    |    |    |
+A ------X----O----X----O----O----O----|----      A ------X----O----X----O----O----O----|----
+        |    |    |    |    |    |    |                  |    |    |    |    |    |    |
+B ------O----X----X----O----O----|----O----      B ------O----X----X----O----X----|----X----
+        |    |    |    |    |    |    |                  |    |    |    |    |    |    |
+CIn ----X----X----O----O----X----O----O----      BIn ----X----X----O----O----X----O----O----
+        |    |    |    |    |    |    |                  |    |    |    |    |    |    |
+        |    |    |    |    |    |    |                  |    |    |    |    |    |    |
+        ================    ===========                  ================    ===========
+               |                 |                               |                |
+               |                 |                               |                |
+               S                COut                           DOut             BOut
+
+
+
+
+          |    |    |    |    |    |    |    |    |
+          |    |    |    |    |    |    |    |    |
+          |    |    |    |    |    |    |    |    |
+  --------O----O----O----O----O----O----O----O----O---- IsAddSubtract (set to 1 during add or subtract)
+          |    |    |    |    |    |    |    |    |
+Op -------|----|----|----|----O----O----O----X----X---- IsAdd
+          |    |    |    |    |    |    |    |    |
+A --------X----O----X----O----O----O----|----O----|----
+          |    |    |    |    |    |    |    |    |
+B --------O----X----X----O----O----|----O----X----X----
+          |    |    |    |    |    |    |    |    |
+C/BIn ----X----X----O----O----X----O----O----X----O----
+          |    |    |    |    |    |    |    |    |
+          |    |    |    |    |    |    |    |    |
+          |    |    |    |    |    |    |    |    |
+          ================    =====================
+                 |                        |
+                 |                        |
+                S/D                    C/BOut
+
+
+          +-------+
+C/BIn ----| Adder |
+          |       |
+A0 -------|       |
+          |       |
+B0 -------|       |
+          +-------+
+            |   |
+            |   |
+    +-------+  S/D0
+    |
+    |     +-------+
+    +-----| Adder |
+          |       |
+A1 -------|       |
+          |       |
+B1 -------|       |
+          +-------+
+            |   |
+            |   |
+    +-------+  S/D1
+
+
+  Interaction of Cout of S/Dx to Cin of S/Dx+1 can consist of a knob placed on the opposite
+  sides of Cout and Cin.
+
+          |        When the operation completes, Cout will automatically be shifted into the
+          |        Correct position.  Cin for the next operation can then attempt to move.
+  Cin ----O----    If Cout is zero, Cin will remain at zero.  If it is at 1, it be set to
+          |        1.  The placing of the knobs and probes on the wrong side (of a stacked
+          |        set of bits) will allow interaction between the x and x+1 bits.
+          C
+          o
+          u
+          t
+
+Shifter
+
+  Note: The shifter is mounted vertically - parallel to the operation lock rods.  This is a different
+        orientation than the other ALU functional components
+
+
+  Shift Right (SHR)                                    Shift Left (SHL)
+
+         |    |    |    |    |    |    |    |                 |    |    |    |    |    |    |    |
+         |    |    |    |    |    |    |    |                 |    |    |    |    |    |    |    |
+  A0 ----Z----O----|----|----|----|----|----|----      A0 ----|----|----|----|----|----|----|----Z----
+         |    |    |    |    |    |    |    |                 |    |    |    |    |    |    |    |
+  A1 ----|----|----O----|----|----|----|----|----      A1 ----O----|----|----|----|----|----|----|----
+         |    |    |    |    |    |    |    |                 |    |    |    |    |    |    |    |
+  A2 ----|----|----|----O----|----|----|----|----      A2 ----|----O----|----|----|----|----|----|----
+         |    |    |    |    |    |    |    |                 |    |    |    |    |    |    |    |
+  A3 ----|----|----|----|----O----|----|----|----      A3 ----|----|----O----|----|----|----|----|----
+         |    |    |    |    |    |    |    |                 |    |    |    |    |    |    |    |
+  A4 ----|----|----|----|----|----O----|----|----      A4 ----|----|----|----O----|----|----|----|----
+         |    |    |    |    |    |    |    |                 |    |    |    |    |    |    |    |
+  A5 ----|----|----|----|----|----|----O----|----      A5 ----|----|----|----|----O----|----|----|----
+         |    |    |    |    |    |    |    |                 |    |    |    |    |    |    |    |
+  A6 ----|----|----|----|----|----|----|----O----      A6 ----|----|----|----|----|----O----|----|----
+         |    |    |    |    |    |    |    |                 |    |    |    |    |    |    |    |
+  A7 ----|----|----|----|----|----|----|----|----      A7 ----|----|----|----|----|----|----O----|----
+         |    |    |    |    |    |    |    |                 |    |    |    |    |    |    |    |
+         |    |    |    |    |    |    |    |                 |    |    |    |    |    |    |    |
+         R    R    R    R    R    R    R    R                 R    R    R    R    R    R    R    R
+         0    1    2    3    4    5    6    7                 0    1    2    3    4    5    6    7
+
+
+  Rotate Right (ROR)                                   Rotate Left (ROL)
+
+         |    |    |    |    |    |    |    |                 |    |    |    |    |    |    |    |
+         |    |    |    |    |    |    |    |                 |    |    |    |    |    |    |    |
+  A0 ----|----O----|----|----|----|----|----|----      A0 ----|----|----|----|----|----|----|----O----
+         |    |    |    |    |    |    |    |                 |    |    |    |    |    |    |    |
+  A1 ----|----|----O----|----|----|----|----|----      A1 ----O----|----|----|----|----|----|----|----
+         |    |    |    |    |    |    |    |                 |    |    |    |    |    |    |    |
+  A2 ----|----|----|----O----|----|----|----|----      A2 ----|----O----|----|----|----|----|----|----
+         |    |    |    |    |    |    |    |                 |    |    |    |    |    |    |    |
+  A3 ----|----|----|----|----O----|----|----|----      A3 ----|----|----O----|----|----|----|----|----
+         |    |    |    |    |    |    |    |                 |    |    |    |    |    |    |    |
+  A4 ----|----|----|----|----|----O----|----|----      A4 ----|----|----|----O----|----|----|----|----
+         |    |    |    |    |    |    |    |                 |    |    |    |    |    |    |    |
+  A5 ----|----|----|----|----|----|----O----|----      A5 ----|----|----|----|----O----|----|----|----
+         |    |    |    |    |    |    |    |                 |    |    |    |    |    |    |    |
+  A6 ----|----|----|----|----|----|----|----O----      A6 ----|----|----|----|----|----O----|----|----
+         |    |    |    |    |    |    |    |                 |    |    |    |    |    |    |    |
+  A7 ----O----|----|----|----|----|----|----|----      A7 ----|----|----|----|----|----|----O----|----
+         |    |    |    |    |    |    |    |                 |    |    |    |    |    |    |    |
+         |    |    |    |    |    |    |    |                 |    |    |    |    |    |    |    |
+         R    R    R    R    R    R    R    R                 R    R    R    R    R    R    R    R
+         0    1    2    3    4    5    6    7                 0    1    2    3    4    5    6    7
+
+  However, shift operations can be done as single rod operations.  The operation rod will operate on a bit
+  opposite of the norm. That is, if the knobs are normally on the top of the rod, they will now be on the
+  bottom.
+
+  This will handle a single direction.  The opposite shift will required skipping a rod to interact.  This can
+  be done with some offsetting.
+
+  Either similar offsetting or the addition of a veritcal rod will be required to rotate the last bit
+  (i.e. 0 <---> 7)
+
+Extraction of R
+
+    Operation Results (OR)
+
+                Rx         Things to note:
+                |          Unlike most rods, Rx is Active High.  The rod normally rests in the
+                |          1 position.  When it is time to be engaged, it will attempt to move
+                |          to the zero position.
+    OR 0000 ----X----
+                |          If none of the results are set to one, the rod will be able to move
+    OR 0001 ----X----      to the zero position.  If any rod is set to one, the rod will be stuck
+                |          in the 1 position.
+    OR 0010 ----X----
+                |          Remember that with the operations, the operation lock (OL) from the
+    OR 0011 ----X----      operation demultiplexer will force any operation that is not the one
+                |          being currenlty active to be zero.  That way, this method will only
+    OR 0011 ----X----      extract the result form the operation that is currently being
+                |          performed.
+    OR 0100 ----X----
+                |
+                |
+                |
+                Rx
+
+
+    Overflow Detection (OD)
+
+
+             1   0   1   0   1   0   1   0   1   0   1   0   1   0   1   0
+             1   1   0   0   1   1   0   0   1   1   0   0   1   1   0   0
+             1   1   1   1   0   0   0   0   1   1   1   1   0   0   0   0
+             1   1   1   1   1   1   1   1   0   0   0   0   0   0   0   0
+             |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |        |    |    |    |
+             |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |        |    |    |    |
+             |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |        |    |    |    |
+A7 ----------|---|---|---|---|---|---|---|---|---|---|---|---|---O---X---Z--------X----O----|----|----
+             |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |        |    |    |    |
+B7 ----------|---|---|---|---|---|---|---|---|---|---|---|---|---O---|---|--------X----O----|----|----
+             |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |        |    |    |    |
+ONE ---------|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|--------|----|----|----|---- (Contant One)
+             |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |        |    |    |    |
+             |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |        |    |    |    |
+             |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |        |    |    |    |
+             |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |        |    |    |    |
+    ---------X---X---X---X---X---X---X---X---X---|---|---|---|---|---|---|--------|----|----|----|---- isLogic
+             |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |        |    |    |    |
+    ---------X---X---X---X---|---|---|---|---X---X---X---X---X---X---X---X--------|----|----|----|---- isShift
+             |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |        |    |    |    |
+    ---------|---|---|---|---X---X---X---X---X---X---X---X---X---X---X---X--------O----O----|----|---- isAddSubtract
+             |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |        |    |    |    |
+    ---------X---|---X---|---X---X---X---X---X---X---X---X---X---X---X---X--------|----|----|----|---- isAdd
+             |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |        |    |    |    |
+    ---------|---X---|---X---X---X---X---X---X---X---X---X---X---X---X---X--------|----|----|----|---- isSubtract
+             |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |        |    |    |    |
+    ---------|---|---X---X---X---X---X---X---X---X---X---X---X---X---X---X--------|----|----|----|---- useONE (Use Constant One)
+             |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |        |    |    |    |
+             |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |        |    |    |    |
+             |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |        |    |    |    |
+             |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |        |    |    |    |
+R7 ----------X---X---X---X---X---X---X---X---X---X---X---X---X---X---X---X--------O----X----|----|----
+             |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |        |    |    |    |
+             |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |        |    |    |    |
+             |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |    ----X----X----|----|---- Overflow (0 <- 1)
+             |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |        |    |    |    |
+             |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |        |    |    |    |
+             A   A   A   A   S   S   R   R   u   A   A   A   A   A   N   N        O    U
+             -   +   -   +   H   H   O   O   n                       O   O        v    n
+             -   +   B   B   L   R   T   T   d   N   N   X   O   A   T   P        e    d
+                                     L   R   e   O   A   O   R   N                r    e
+                             A   A           f   R   N   R       D   A            f    r
+                                     B   A           D       B                    l    f
+                                                 B       B       B                o    l
+                                                     B                            w    o
+                                                                                       w
+             -------------   -------------       -------------------------
+             Adder           Shifter             Logic
+
+
+  Note: An easier way to calculate overflow may be to take CIn7 XOR COut7 (that it the Carry In on bit 7 XOR the Carry
+        Out on Bit 7).
+
+
+Operation Flow
+
+1) Set the Operation, A input and B Input
+2) Select the operation (engage the 4 to 16 demultiplexer)
+3) Lock the operation (read the output of the 4 to 16 demultiplexer and use that]
+   to lock the operation
+4) Perform the Operation
+5) Read the output
+
+
+Malu Physical Layout
+
+  ----- - Indicates Rods on X Axis
+
+  |
+  | - Indicates Rods on Y Axis
+  |
+
+  [] - Indicates rods on Z Axis
+
+
+  Side View
+
+          Operation Lock (1 is up)
+          |
+          |
+   Op 0 []| <--- 4:16 Demulitplexer
+          |
+   Op 1 []|
+          |      Does not indicate CIn/COut, Overflow Detect, Add/Sub Op, Shifter overhead
+   Op 2 []|
+          |
+   Op 3 []|
+          |
+          |
+          | 1
+          | ^
+          | |
+          | 0
+          |
+          |                                    |Zero Detect
+          |                                    |
+          |  0->1    A     B                 R |
+  0 ------|------------------------------------|------
+          |       A0 []    [] B0          R0 []|
+          |                                    |
+  1 ------|------------------------------------|------
+          |       A1 []    [] B1          R1 []|
+          |                                    |
+  2 ------|------------------------------------|------
+          |       A2 []    [] B2          R2 []|
+          |                                    |
+  3 ------|------------------------------------|------
+          |       A3 []    [] B3          R3 []|
+          |                                    |
+  4 ------|------------------------------------|------
+          |       A4 []    [] B4          R4 []|
+          |                                    |
+  5 ------|------------------------------------|------
+          |       A5 []    [] B5          R5 []|
+          |                                    |
+  6 ------|------------------------------------|------
+          |       A6 []    [] B6          R6 []|
+          |                                    |
+  7 ------|------------------------------------|------
+          |       A7 []    [] B7          R7 []|
+          |                                    |
+
+
+  Top View
+
+
+         Op          A     B                 R
+         |           |     |                 |
+         |           |     |                 |[] <-- Zero Detect
+         |Op Lck     |     |                 |
+         |[] 0000    |     |                 |
+     ----|-----------Z-----|-----------------O----
+         |           |     |                 |
+         |[] 0001    |     |                 |
+     ----|-----------X-----|-----------------O----
+         |           |     |                 |
+         |[] 0010    |     |                 |
+     ----|-----------O-----O-----------------O----
+         |           |     |                 |
+         |[] 0011    |     |                 |
+     ----|-----------O-----|-----|           |
+         |           |     |     |-----------O----
+         |[] 0011    |     |     |           |
+     ----|-----------|-----O-----|           |
+         |           |     |                 |
+        ...         ...   ...               ...
+
+
+  Front View
+
+
+             0    0    0    0    0
+             0    0    0    0    0
+             1    1    1    0    0
+             1    1    0    1    0
+             |    |    |    |    |
+             |    |    |    |    |
+             |    |    |    |    |
+  ...--------O----O----X----O----X---- Op 0
+             |    |    |    |    |
+  ...--------O----O----O----X----X---- Op 1
+             |    |    |    |    |
+  ...--------X----X----X----X----X---- Op 2
+             |    |    |    |    |
+  ...--------X----X----X----X----X---- Op 3
+             |    |    |    |    |
+             |    |    |    |    |
+             |    |    |    |    |
+             |    |    |    |    |
+             |    |    |    |    |
+             |    |    |    |    |
+             |    |    |    |    |
+             |    |    |    |    |
+             |    |    |    |    |
+  ...--------|----|----|----|----|---- A/B/R 0
+             |[]  |[]  |[]  |[]  |[]
+             |    |    |    |    |
+  ...--------|----|----|----|----|---- A/B/R 1
+             |[]  |[]  |[]  |[]  |[]
+             |    |    |    |    |
+  ...--------|----|----|----|----|---- A/B/R 2
+             |[]  |[]  |[]  |[]  |[]
+             |    |    |    |    |
+  ...--------|----|----|----|----|---- A/B/R 3
+             |[]  |[]  |[]  |[]  |[]
+             |    |    |    |    |
+  ...--------|----|----|----|----|---- A/B/R 4
+             |[]  |[]  |[]  |[]  |[]
+             |    |    |    |    |
+  ...--------|----|----|----|----|---- A/B/R 5
+             |[]  |[]  |[]  |[]  |[]
+             |    |    |    |    |
+  ...--------|----|----|----|----|---- A/B/R 6
+             |[]  |[]  |[]  |[]  |[]
+             |    |    |    |    |
+  ...--------|----|----|----|----|---- A/B/R 7
+             |[]  |[]  |[]  |[]  |[]
+             |    |    |    |    |
+             |    |    |    |    |
+
+Full Rod Diagram for Bit 0
+
+
+              A    B
+              |    |         |    |              |
+        OL    |    |         |    |              |
+OR      []    |    |         |    |              |     OR
+0000 ---------Z----|---------X----X--------------X---- 0000 NOP           Note: This diagram does not show inc/dec
+              |    |         |    |              |                              Overflow, or =, < or >.
+0001 ---------X----|---------X----X--------------X---- O001 NOT A
+              |    |         |    |              |
+0010 ---------O----O---------X----X--------------X---- 0010 A AND B
+              |    |         |    |              |
+0011 ---------O----|---------X----X--------------X---- 0011 A OR B
+              |    |         |    |              |
+0011 ---------|----O---------X----X--------------X---- 0011 A OR B
+              |    |         |    |              |
+0100 ---------O----X---------X----X--------------X---- 0100 A XOR B
+              |    |         |    |              |
+0100 ---------X----O---------X----X--------------X---- 0100 A XOR B
+              |    |         |    |              |
+0101 ---------X----X---------X----X--------------X---- 0101 A NAND B
+              |    |         |    |              |
+0110 ---------X----|---------X----X--------------X---- 0110 A NOR B
+              |    |         |    |              |
+0110 ---------|----X---------X----X--------------X---- 0110 A NOR B
+              |    |         |    |              |
+0111 ---------|----|---------X----X--------------X---- 0111 UNDEF
+              |    |         |    |              |
+1000 ---------|----|---------X----X--------------X---- 1000 ROTR    Interacts with other bits
+              |    |         |    |              |
+1001 ---------|----|---------X----X--------------X---- 1001 ROTL    Interacts with other bits
+              |    |         |    |              |
+1010 ---------|----|---------X----X--------------X---- 1010 SHR     Interacts with other bits
+              |    |         |    |              |
+1011 ---------|----|---------X----X--------------X---- 1011 SHL     Interacts with other bits
+              |    |         |    |              |
+1100 ---------|----|---------|----|--------------X---- 1100 A + B
+              |    |         |    |              |
+1101 ---------|----|---------|----X--------------X---- 1101 A - B
+              |    |         |    |              |
+1110 ---------|----|---------|----|--------------X---- 1110 A++
+              |    |         |    |              |
+1111 ---------|----|---------|----X--------------X---- 1111 A--
+        []    |    |         |    |              |
+        OL    |    |         |    |    |         |
+              |    |         |    |    |         |
+          ----X----O---------O----|----X---------X---- Add/Subtract     Note: May need duplication of the Add/Subtract,
+              |    |         |    |    |         |                            COut, BOut unit to handle inc/dec.  The
+          ----O----X---------O----|----X---------X---- Add/Subtract           additional unit will interact with a B
+              |    |         |    |    |         |                            that is forced at 1.  This will require
+          ----X----X---------O----|----O---------X---- Add/Subtract           an IsIncDec check plus the ONE0-ONE7 bars
+              |    |         |    |    |         |
+          ----O----O---------O----|----O---------X---- Add/Subtract
+              |    |         |    |    |         |
+              |    |         |    |    |         |
+              |    |         |    |    |         |
+          ----O----O---------O----O----X---------X---- COut    Note: COut/BOut interacts with CIn on row below
+              |    |         |    |    |         |                   This one (As Identity gate).
+          ----O----|---------O----O----O---------X---- COut          CIn(bit+1) = COut(Bit)
+              |    |         |    |    |         |
+          ----|----O---------O----O----O---------X---- COut
+              |    |         |    |    |         |             Note: The Addeer/Subtractor could be folded into
+          ----O----X---------O----X----X---------X---- BOut          The normal Operation Result (OR) calculation.
+              |    |         |    |    |         |                   However, that requires a lot more bars.
+          ----|----X---------O----X----O---------X---- BOut
+              |    |         |    |    |         |
+              |    |         |    |    |         |[] Zero Detect
+              |    |         |    |    |         |
+              A    B         I    I    C         R
+              0    0         s    s    I         0
+                             +    +    n
+                             -
+
+    The Cycle
+        1) Set Operation, A and B (Manual) (May Include CIn(Bit0))
+        2) Engage OL, Reset R (Global - once per ALU operation)
+        3) Engage OR (Per Bit)
+        4) Engage Is+-, Is+ (Per Bit)
+        5) Engage Add/Subtract, COut, BOut (Per Bit)
+        6) Engage R, CIn(Bit+1) (Per Bit)
+        7) Engage Zero Detect (ZD) and Overflow Detection (Global)
+
+
+
+
+Mechanical 7 segment hex display
+
+ __0__       0    0 1 2 4 5 6        8    0 1 2 3 4 5 6
+|     |      1    2 5                9    0 1 2 3 5 6
+1     2      2    0 2 3 4 6          A    0 1 2 3 4 5
+|     |      3    0 2 3 5 6          B    0 1 3 4 5 6
+ --3--       4    1 2 3 5            C    0 1 4 6
+|     |      5    0 1 3 5 6          D    2 3 4 5 6
+4     5      6    0 1 3 4 5 6        E    0 1 3 4 6
+|     |      7    0 2 5              F    0 1 3 4
+ --6--
+
+
+A B C D | 0 1 2 3 4 5 6
+--------+--------------
+0 0 0 0 | 1 1 1 0 1 1 1
+0 0 0 1 | 0 0 1 0 0 1 0
+0 0 1 0 | 1 0 1 1 1 0 1
+0 0 1 1 | 1 0 1 1 0 1 1
+0 1 0 0 | 0 1 1 1 0 1 0
+0 1 0 1 | 1 1 0 1 0 1 1
+0 1 1 0 | 1 1 0 1 1 1 1
+0 1 1 1 | 1 0 1 0 0 1 0
+1 0 0 0 |
+1 0 0 1 |
+1 0 1 0 |
+1 0 1 1 |
+1 1 0 0 |
+1 1 0 1 |
+1 1 1 0 |
+1 1 1 1 |
+
+
+      0    1    2    3    4    5    6
+      |    |    |    |    |    |    |
+      |    |    |    |    |    |    |
+      |    |    |    |    |    |    |
+A ----|----|----|----|----|----|----|----
+      |    |    |    |    |    |    |
+B ----|----|----|----|----|----|----|----
+      |    |    |    |    |    |    |
+C ----|----|----|----|----|----|----|----
+      |    |    |    |    |    |    |
+D ----|----|----|----|----|----|----|----
+      |    |    |    |    |    |    |
+      |    |    |    |    |    |    |
+      |    |    |    |    |    |    |
+
+
+
+Comparator
+
+     A | B | A > B | A < B | A = B
+    ---+---+-------+-------+------
+     0 | 0 | 0     | 0     | 1
+     0 | 1 | 0     | 1     | 0
+     1 | 0 | 1     | 0     | 0
+     1 | 1 | 0     | 0     | 1
